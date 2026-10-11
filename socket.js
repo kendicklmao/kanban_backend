@@ -7,34 +7,21 @@ module.exports = {
     init: (httpServer) => {
         io = new Server(httpServer, {
             cors: {
-                origin: "*", // ✅ Cho phép tất cả IP / Cổng kết nối
+                origin: "*",
                 methods: ["GET", "POST"],
                 credentials: true,
             },
         });
 
+        // 1. Tên phòng chung cố định
+        const GLOBAL_ROOM = "app_global_room";
+
         io.on("connection", (socket) => {
             console.log("⚡ Client connected:", socket.id);
 
-            // 🎯 Cho user vào Room riêng dựa theo ID (Phục vụ việc Ban/Kick tài khoản)
-            socket.on("join_user", (userId) => {
-                if (userId) {
-                    socket.join(`user_${userId}`);
-                    console.log(`Socket ${socket.id} joined user room: user_${userId}`);
-                }
-            });
-
-            // Tham gia vào room của dự án (mỗi project 1 room riêng)
-            socket.on("join_project", (projectId) => {
-                socket.join(`project_${projectId}`);
-                console.log(`Socket ${socket.id} joined project_${projectId}`);
-            });
-
-            // Rời room dự án
-            socket.on("leave_project", (projectId) => {
-                socket.leave(`project_${projectId}`);
-                console.log(`Socket ${socket.id} left project_${projectId}`);
-            });
+            // 2. Tự động thêm client vào phòng chung ngay khi vừa kết nối
+            socket.join(GLOBAL_ROOM);
+            console.log(`Socket ${socket.id} joined global room: ${GLOBAL_ROOM}`);
 
             socket.on("disconnect", () => {
                 console.log("🔥 Client disconnected:", socket.id);
